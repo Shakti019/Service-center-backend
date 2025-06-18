@@ -27,16 +27,27 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration
+// ... existing code ...
+// CORS configuration
 app.use(cors({
-    origin: [
-        'http://localhost:3000',
-        'https://6852d4689643bb401dd81d40--resonant-jalebi-2ee4cc.netlify.app',
-        'https://resonant-jalebi-2ee4cc.netlify.app'  // Add the main Netlify URL as well
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204
 }));
+// ... existing code ...
+
+// Socket.IO configuration
+const io = new Server(server, {
+    cors: {
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        credentials: true
+    }
+});
+// ... existing code ...
 
 app.use(express.json());
 
@@ -56,17 +67,7 @@ app.use('/api/booking', bookingRoutes);
 const server = http.createServer(app);
 
 // Socket.IO configuration
-const io = new Server(server, {
-    cors: {
-        origin: [
-            'http://localhost:3000',
-            'https://6852d4689643bb401dd81d40--resonant-jalebi-2ee4cc.netlify.app',
-            'https://resonant-jalebi-2ee4cc.netlify.app'
-        ],
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        credentials: true
-    }
-});
+
 
 global.io = io;
 
