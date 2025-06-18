@@ -28,7 +28,11 @@ app.use(limiter);
 
 // CORS configuration
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: [
+        'http://localhost:3000',
+        'https://6852d4689643bb401dd81d40--resonant-jalebi-2ee4cc.netlify.app',
+        'https://resonant-jalebi-2ee4cc.netlify.app'  // Add the main Netlify URL as well
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -54,7 +58,11 @@ const server = http.createServer(app);
 // Socket.IO configuration
 const io = new Server(server, {
     cors: {
-        origin: process.env.SOCKET_CORS || '*',
+        origin: [
+            'http://localhost:3000',
+            'https://6852d4689643bb401dd81d40--resonant-jalebi-2ee4cc.netlify.app',
+            'https://resonant-jalebi-2ee4cc.netlify.app'
+        ],
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
         credentials: true
     }
