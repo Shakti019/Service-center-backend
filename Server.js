@@ -1,3 +1,4 @@
+// Server.js
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -6,7 +7,6 @@ const http = require('http');
 const { Server } = require('socket.io');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const config = require('./config/config');
 
 // Load environment variables
 dotenv.config();
@@ -21,14 +21,14 @@ app.use(helmet());
 
 // Rate limiting
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limit each IP to 100 requests per windowMs
+    windowMs: 15 * 60 * 1000,
+    max: 100
 });
 app.use(limiter);
 
 // CORS configuration
 app.use(cors({
-    origin: config.corsOrigin,
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -36,19 +36,12 @@ app.use(cors({
 
 app.use(express.json());
 
-// Request logging middleware
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    console.log('Request Body:', req.body);
-    next();
-});
-
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.status(200).json({ 
         status: 'ok', 
         message: 'Server is running',
-        environment: config.nodeEnv
+        environment: process.env.NODE_ENV
     });
 });
 
@@ -61,7 +54,7 @@ const server = http.createServer(app);
 // Socket.IO configuration
 const io = new Server(server, {
     cors: {
-        origin: config.socketCors,
+        origin: process.env.SOCKET_CORS || '*',
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
         credentials: true
     }
@@ -81,7 +74,7 @@ io.on('connection', (socket) => {
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ 
-        message: config.nodeEnv === 'production' 
+        message: process.env.NODE_ENV === 'production' 
             ? 'Internal server error' 
             : err.message 
     });
@@ -94,11 +87,10 @@ app.use((req, res) => {
     });
 });
 
-const PORT = config.port;
+const PORT = process.env.PORT || 5000;
 
 // Start the server
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    console.log(`Environment: ${config.nodeEnv}`);
-    console.log(`Health check: http://localhost:${PORT}/health`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
 });
