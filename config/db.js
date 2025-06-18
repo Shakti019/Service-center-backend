@@ -4,19 +4,30 @@ const mongoose = require("mongoose");
 const ConnectDB = async () => {
     try {
         console.log('Attempting to connect to MongoDB...');
-        console.log('MongoDB URI:', process.env.MONGO_URI);
         
-        const conn = await mongoose.connect(process.env.MONGO_URI, {
+        // Don't log the full URI for security
+        const uri = process.env.MONGO_URI;
+        if (!uri) {
+            throw new Error('MongoDB URI is not defined');
+        }
+        
+        const conn = await mongoose.connect(uri, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
-            serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-            family: 4 // Use IPv4, skip trying IPv6
+            serverSelectionTimeoutMS: 30000,
+            family: 4
         });
         
         console.log(`MongoDB Connected: ${conn.connection.host}`);
     } catch (error) {
         console.error("MongoDB connection error:", error.message);
-        process.exit(1);
+        if (error.message.includes('bad auth')) {
+            console.error('Authentication failed. Please check your username and password.');
+        }
+        // Don't exit in production
+        if (process.env.NODE_ENV !== 'production') {
+            process.exit(1);
+        }
     }
 };
 
